@@ -1,0 +1,30 @@
+{
+  "problem_id": "demo-request-1",
+  "locations": [
+    {"id": "office", "latitude": 55.751244, "longitude": 37.618423},
+    {"id": "customer-1", "latitude": 55.761244, "longitude": 37.628423}
+  ],
+  "jobs": [
+    {
+      "id": "job-1",
+      "location_id": "customer-1",
+      "service_minutes": 70,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "required_skill": "connection",
+      "required_transport": null,
+      "priority": "normal"
+    }
+  ],
+  "engineers": [
+    {
+      "id": "engineer-1",
+      "start_location_id": "office",
+      "shift_start": "10:00",
+      "shift_end": "22:00",
+      "skills": ["connection", "local"],
+      "transport": "car"
+    }
+  ],
+  "options": {"solver": "ortools", "time_limit_sec": 10, "seed": 42}
+}

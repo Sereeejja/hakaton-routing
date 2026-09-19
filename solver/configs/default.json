@@ -1,0 +1,20 @@
+{
+  "loader": {
+    "info_policy": "field_service",
+    "information_service_minutes": 80,
+    "shift_start": "10:00",
+    "shift_end": "22:00",
+    "seed": 42
+  },
+  "approximate_matrix": {
+    "speed_kmh": 28.0,
+    "road_factor": 1.3
+  },
+  "solver": {
+    "time_limit_sec": 10,
+    "seed": 42
+  },
+  "benchmark": {
+    "hgs_seeds": [41, 42, 43, 44, 45]
+  }
+}
