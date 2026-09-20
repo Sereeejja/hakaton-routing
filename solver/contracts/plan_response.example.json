@@ -1,0 +1,38 @@
+{
+  "solver_name": "ortools",
+  "status": "feasible",
+  "routes": [
+    {
+      "engineer_id": "engineer-1",
+      "departure_minutes": 600,
+      "finish_minutes": 674,
+      "stops": [
+        {
+          "sequence": 1,
+          "job_id": "job-1",
+          "from_location_id": "office",
+          "travel_minutes": 4,
+          "distance_km": 1.8,
+          "arrival_minutes": 604,
+          "service_start_minutes": 604,
+          "service_end_minutes": 674,
+          "waiting_minutes": 0
+        }
+      ],
+      "total_travel_minutes": 4,
+      "total_waiting_minutes": 0,
+      "total_service_minutes": 70,
+      "total_distance_km": 1.8
+    }
+  ],
+  "unassigned": [],
+  "metrics": {
+    "completed_jobs": 1,
+    "unassigned_urgent_jobs": 0,
+    "unassigned_jobs": 0,
+    "active_engineers": 1,
+    "total_distance_km": 1.8,
+    "total_travel_minutes": 4,
+    "total_waiting_minutes": 0
+  }
+}

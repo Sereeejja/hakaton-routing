@@ -1,0 +1,866 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API заявок, бригад, планирования и оперативного перепланирования.",
+        "title": "Routing Planner API",
+        "contact": {},
+        "version": "0.1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/brigades/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "brigades"
+                ],
+                "summary": "Список бригад",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/brigades.Brigade"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "brigades"
+                ],
+                "summary": "Создать бригаду",
+                "parameters": [
+                    {
+                        "description": "Бригада",
+                        "name": "brigade",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/brigades.CreateDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/brigades.Brigade"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/brigades/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "brigades"
+                ],
+                "summary": "Получить бригаду",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID бригады",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/brigades.Brigade"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/brigades/{id}/status": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "brigades"
+                ],
+                "summary": "Изменить доступность бригады",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID бригады",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый статус",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/brigades.UpdateStatusDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/brigades.Brigade"
+                        }
+                    }
+                }
+            }
+        },
+        "/plans/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plans"
+                ],
+                "summary": "Последние планы",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/plans.Plan"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Синхронно запускает solver для выбранных или всех активных сущностей",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "planning"
+                ],
+                "summary": "Построить план маршрутов",
+                "parameters": [
+                    {
+                        "description": "Настройки расчёта",
+                        "name": "options",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/planning.RunDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/planning.PlanResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/plans/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plans"
+                ],
+                "summary": "Получить план",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID плана",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/plans.Plan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/plans/{id}/events": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "replanning"
+                ],
+                "summary": "Применить событие и перестроить план",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID исходного плана",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Событие",
+                        "name": "event",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/replanning.EventDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/replanning.Result"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Список заявок",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/requests.Request"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Создать заявку",
+                "parameters": [
+                    {
+                        "description": "Заявка",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CreateDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/requests.Request"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Получить заявку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/requests.Request"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/requests/{id}/status": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Изменить статус заявки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый статус",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.UpdateStatusDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/requests.Request"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "brigades.Brigade": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "shift_end": {
+                    "type": "string",
+                    "example": "22:00"
+                },
+                "shift_start": {
+                    "type": "string",
+                    "example": "10:00"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "start_address": {
+                    "type": "string"
+                },
+                "start_latitude": {
+                    "type": "number"
+                },
+                "start_longitude": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "available",
+                        "unavailable"
+                    ]
+                },
+                "transport": {
+                    "type": "string",
+                    "enum": [
+                        "car",
+                        "walk",
+                        "bicycle",
+                        "public_transit"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "brigades.CreateDTO": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Бригада Восток-1"
+                },
+                "shift_end": {
+                    "type": "string",
+                    "example": "22:00"
+                },
+                "shift_start": {
+                    "type": "string",
+                    "example": "10:00"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "connection",
+                        "local"
+                    ]
+                },
+                "start_address": {
+                    "type": "string",
+                    "example": "Москва, Измайловское шоссе, 1"
+                },
+                "start_latitude": {
+                    "type": "number",
+                    "example": 55.7891
+                },
+                "start_longitude": {
+                    "type": "number",
+                    "example": 37.7488
+                },
+                "transport": {
+                    "type": "string",
+                    "example": "car"
+                }
+            }
+        },
+        "brigades.UpdateStatusDTO": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "available",
+                        "unavailable"
+                    ]
+                }
+            }
+        },
+        "planning.PlanResponse": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "seed": {
+                    "type": "integer"
+                },
+                "solution": {
+                    "type": "object"
+                },
+                "solver_name": {
+                    "type": "string"
+                },
+                "source_plan_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "running",
+                        "feasible",
+                        "partial",
+                        "infeasible",
+                        "error"
+                    ]
+                },
+                "time_limit_seconds": {
+                    "type": "number"
+                }
+            }
+        },
+        "planning.RunDTO": {
+            "type": "object",
+            "properties": {
+                "brigade_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "request_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "seed": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "solver_name": {
+                    "type": "string",
+                    "example": "ortools"
+                },
+                "source_plan_id": {
+                    "type": "string"
+                },
+                "time_limit_seconds": {
+                    "type": "number",
+                    "example": 10
+                }
+            }
+        },
+        "plans.Plan": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "seed": {
+                    "type": "integer"
+                },
+                "solution": {
+                    "type": "object"
+                },
+                "solver_name": {
+                    "type": "string"
+                },
+                "source_plan_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "running",
+                        "feasible",
+                        "partial",
+                        "infeasible",
+                        "error"
+                    ]
+                },
+                "time_limit_seconds": {
+                    "type": "number"
+                }
+            }
+        },
+        "plans.ReplanEvent": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "processed_at": {
+                    "type": "string"
+                },
+                "resulting_plan_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "replanning.EventDTO": {
+            "type": "object",
+            "properties": {
+                "payload": {
+                    "type": "object"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "cancel_request"
+                }
+            }
+        },
+        "replanning.Result": {
+            "type": "object",
+            "properties": {
+                "event": {
+                    "$ref": "#/definitions/plans.ReplanEvent"
+                },
+                "plan": {
+                    "$ref": "#/definitions/plans.Plan"
+                }
+            }
+        },
+        "requests.CreateDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "Москва, ул. Тверская, 1"
+                },
+                "external_id": {
+                    "type": "string",
+                    "example": "REQ-1042"
+                },
+                "latitude": {
+                    "type": "number",
+                    "example": 55.7578
+                },
+                "longitude": {
+                    "type": "number",
+                    "example": 37.6156
+                },
+                "metadata": {
+                    "type": "object"
+                },
+                "priority": {
+                    "type": "string",
+                    "example": "normal"
+                },
+                "required_skill": {
+                    "type": "string",
+                    "example": "connection"
+                },
+                "required_transport": {
+                    "type": "string",
+                    "example": "car"
+                },
+                "service_minutes": {
+                    "type": "integer",
+                    "example": 70
+                },
+                "window_end": {
+                    "type": "string",
+                    "example": "12:00"
+                },
+                "window_start": {
+                    "type": "string",
+                    "example": "10:00"
+                }
+            }
+        },
+        "requests.Request": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "metadata": {
+                    "type": "object"
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": [
+                        "normal",
+                        "urgent"
+                    ]
+                },
+                "required_skill": {
+                    "type": "string",
+                    "enum": [
+                        "connection",
+                        "local",
+                        "emergency"
+                    ]
+                },
+                "required_transport": {
+                    "type": "string",
+                    "enum": [
+                        "car",
+                        "walk",
+                        "bicycle",
+                        "public_transit"
+                    ]
+                },
+                "service_minutes": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "planned",
+                        "completed",
+                        "canceled"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "window_end": {
+                    "type": "string",
+                    "example": "12:00"
+                },
+                "window_start": {
+                    "type": "string",
+                    "example": "10:00"
+                }
+            }
+        },
+        "requests.UpdateStatusDTO": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "planned",
+                        "completed",
+                        "canceled"
+                    ]
+                }
+            }
+        },
+        "web.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "validation_error"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "invalid request body"
+                }
+            }
+        }
+    }
+}

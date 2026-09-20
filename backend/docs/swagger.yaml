@@ -1,0 +1,583 @@
+basePath: /api/v1
+definitions:
+  brigades.Brigade:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      metadata:
+        type: object
+      name:
+        type: string
+      shift_end:
+        example: "22:00"
+        type: string
+      shift_start:
+        example: "10:00"
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      start_address:
+        type: string
+      start_latitude:
+        type: number
+      start_longitude:
+        type: number
+      status:
+        enum:
+        - available
+        - unavailable
+        type: string
+      transport:
+        enum:
+        - car
+        - walk
+        - bicycle
+        - public_transit
+        type: string
+      updated_at:
+        type: string
+    type: object
+  brigades.CreateDTO:
+    properties:
+      metadata:
+        type: object
+      name:
+        example: Бригада Восток-1
+        type: string
+      shift_end:
+        example: "22:00"
+        type: string
+      shift_start:
+        example: "10:00"
+        type: string
+      skills:
+        example:
+        - connection
+        - local
+        items:
+          type: string
+        type: array
+      start_address:
+        example: Москва, Измайловское шоссе, 1
+        type: string
+      start_latitude:
+        example: 55.7891
+        type: number
+      start_longitude:
+        example: 37.7488
+        type: number
+      transport:
+        example: car
+        type: string
+    type: object
+  brigades.UpdateStatusDTO:
+    properties:
+      status:
+        enum:
+        - available
+        - unavailable
+        type: string
+    type: object
+  planning.PlanResponse:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: string
+      seed:
+        type: integer
+      solution:
+        type: object
+      solver_name:
+        type: string
+      source_plan_id:
+        type: string
+      status:
+        enum:
+        - running
+        - feasible
+        - partial
+        - infeasible
+        - error
+        type: string
+      time_limit_seconds:
+        type: number
+    type: object
+  planning.RunDTO:
+    properties:
+      brigade_ids:
+        items:
+          type: string
+        type: array
+      request_ids:
+        items:
+          type: string
+        type: array
+      seed:
+        example: 42
+        type: integer
+      solver_name:
+        example: ortools
+        type: string
+      source_plan_id:
+        type: string
+      time_limit_seconds:
+        example: 10
+        type: number
+    type: object
+  plans.Plan:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: string
+      seed:
+        type: integer
+      solution:
+        type: object
+      solver_name:
+        type: string
+      source_plan_id:
+        type: string
+      status:
+        enum:
+        - running
+        - feasible
+        - partial
+        - infeasible
+        - error
+        type: string
+      time_limit_seconds:
+        type: number
+    type: object
+  plans.ReplanEvent:
+    properties:
+      created_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: string
+      payload:
+        type: object
+      plan_id:
+        type: string
+      processed_at:
+        type: string
+      resulting_plan_id:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  replanning.EventDTO:
+    properties:
+      payload:
+        type: object
+      type:
+        example: cancel_request
+        type: string
+    type: object
+  replanning.Result:
+    properties:
+      event:
+        $ref: '#/definitions/plans.ReplanEvent'
+      plan:
+        $ref: '#/definitions/plans.Plan'
+    type: object
+  requests.CreateDTO:
+    properties:
+      address:
+        example: Москва, ул. Тверская, 1
+        type: string
+      external_id:
+        example: REQ-1042
+        type: string
+      latitude:
+        example: 55.7578
+        type: number
+      longitude:
+        example: 37.6156
+        type: number
+      metadata:
+        type: object
+      priority:
+        example: normal
+        type: string
+      required_skill:
+        example: connection
+        type: string
+      required_transport:
+        example: car
+        type: string
+      service_minutes:
+        example: 70
+        type: integer
+      window_end:
+        example: "12:00"
+        type: string
+      window_start:
+        example: "10:00"
+        type: string
+    type: object
+  requests.Request:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      external_id:
+        type: string
+      id:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      metadata:
+        type: object
+      priority:
+        enum:
+        - normal
+        - urgent
+        type: string
+      required_skill:
+        enum:
+        - connection
+        - local
+        - emergency
+        type: string
+      required_transport:
+        enum:
+        - car
+        - walk
+        - bicycle
+        - public_transit
+        type: string
+      service_minutes:
+        type: integer
+      status:
+        enum:
+        - pending
+        - planned
+        - completed
+        - canceled
+        type: string
+      updated_at:
+        type: string
+      window_end:
+        example: "12:00"
+        type: string
+      window_start:
+        example: "10:00"
+        type: string
+    type: object
+  requests.UpdateStatusDTO:
+    properties:
+      status:
+        enum:
+        - pending
+        - planned
+        - completed
+        - canceled
+        type: string
+    type: object
+  web.ErrorResponse:
+    properties:
+      error:
+        example: validation_error
+        type: string
+      message:
+        example: invalid request body
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API заявок, бригад, планирования и оперативного перепланирования.
+  title: Routing Planner API
+  version: 0.1.0
+paths:
+  /brigades/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/brigades.Brigade'
+            type: array
+      summary: Список бригад
+      tags:
+      - brigades
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Бригада
+        in: body
+        name: brigade
+        required: true
+        schema:
+          $ref: '#/definitions/brigades.CreateDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/brigades.Brigade'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Создать бригаду
+      tags:
+      - brigades
+  /brigades/{id}:
+    get:
+      parameters:
+      - description: UUID бригады
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/brigades.Brigade'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Получить бригаду
+      tags:
+      - brigades
+  /brigades/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID бригады
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Новый статус
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/brigades.UpdateStatusDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/brigades.Brigade'
+      summary: Изменить доступность бригады
+      tags:
+      - brigades
+  /plans/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/plans.Plan'
+            type: array
+      summary: Последние планы
+      tags:
+      - plans
+    post:
+      consumes:
+      - application/json
+      description: Синхронно запускает solver для выбранных или всех активных сущностей
+      parameters:
+      - description: Настройки расчёта
+        in: body
+        name: options
+        required: true
+        schema:
+          $ref: '#/definitions/planning.RunDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/planning.PlanResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Построить план маршрутов
+      tags:
+      - planning
+  /plans/{id}:
+    get:
+      parameters:
+      - description: UUID плана
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/plans.Plan'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Получить план
+      tags:
+      - plans
+  /plans/{id}/events:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID исходного плана
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Событие
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/replanning.EventDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/replanning.Result'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Применить событие и перестроить план
+      tags:
+      - replanning
+  /requests/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/requests.Request'
+            type: array
+      summary: Список заявок
+      tags:
+      - requests
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Заявка
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/requests.Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Создать заявку
+      tags:
+      - requests
+  /requests/{id}:
+    get:
+      parameters:
+      - description: UUID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/requests.Request'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Получить заявку
+      tags:
+      - requests
+  /requests/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Новый статус
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UpdateStatusDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/requests.Request'
+      summary: Изменить статус заявки
+      tags:
+      - requests
+schemes:
+- http
+- https
+swagger: "2.0"
