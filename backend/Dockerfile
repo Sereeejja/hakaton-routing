@@ -26,6 +26,10 @@ COPY --from=builder /out/routing-api /usr/local/bin/routing-api
 COPY backend/migrations/ /app/backend/migrations/
 COPY frontend/ /app/frontend/
 
+RUN useradd --uid 10001 --home-dir /app --shell /usr/sbin/nologin routing \
+    && mkdir -p /app/.cache \
+    && chown -R routing:routing /app/.cache
+
 EXPOSE 8080
-USER nobody
+USER routing
 ENTRYPOINT ["routing-api"]

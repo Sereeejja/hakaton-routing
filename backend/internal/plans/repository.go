@@ -36,11 +36,13 @@ const planColumns = `id, source_plan_id, status, solver_name, seed, time_limit_s
 
 func scanPlan(scanner interface{ Scan(...any) error }) (Plan, error) {
 	var plan Plan
+	var solution []byte
 	err := scanner.Scan(
 		&plan.ID, &plan.SourcePlanID, &plan.Status, &plan.SolverName, &plan.Seed,
-		&plan.TimeLimitSeconds, &plan.Solution, &plan.ErrorMessage, &plan.CreatedAt,
+		&plan.TimeLimitSeconds, &solution, &plan.ErrorMessage, &plan.CreatedAt,
 		&plan.CompletedAt,
 	)
+	plan.Solution = solution
 	return plan, err
 }
 
