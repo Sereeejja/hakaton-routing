@@ -1,0 +1,11 @@
+DROP TRIGGER IF EXISTS brigades_touch_updated_at ON brigades;
+DROP TRIGGER IF EXISTS requests_touch_updated_at ON requests;
+DROP FUNCTION IF EXISTS touch_updated_at();
+DROP TABLE IF EXISTS replan_events;
+DROP TABLE IF EXISTS plan_unassigned;
+DROP TABLE IF EXISTS plan_stops;
+DROP TABLE IF EXISTS plan_routes;
+DROP TABLE IF EXISTS plans;
+DROP TABLE IF EXISTS brigade_skills;
+DROP TABLE IF EXISTS brigades;
+DROP TABLE IF EXISTS requests;

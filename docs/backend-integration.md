@@ -2,32 +2,32 @@
 
 ## Рекомендуемая схема
 
-Алгоритм подключается к Python-backend как библиотека, а не как отдельный
-микросервис:
+Backend реализован на Go, поэтому Python-алгоритм подключён через локальный
+процессный JSON-адаптер:
 
 ```text
 HTTP request
     ↓
-Backend: проверка схемы, авторизация, хранение
+Go backend: проверка схемы и хранение в PostgreSQL
     ↓
-Adapter: HTTP DTO → routing_opt.Problem
+planning.Service → JSON SolverInput
     ↓
-Геокодирование и кэш → TravelMatrices
+python -m routing_opt.backend_bridge
     ↓
-routing_opt.solve(problem, ...)
+JSON → Problem → TravelMatrices → routing_opt.solve(...)
     ↓
 validate_solution(problem, solution)
     ↓
-Solution → JSON/GeoJSON → frontend
+Solution → Go → PostgreSQL + GeoJSON → frontend
 ```
 
-Такой вариант проще для MVP: нет сетевого контракта между backend и solver,
-типизированные модели передаются напрямую в памяти. При росте нагрузки тот же
-вызов можно вынести в worker без изменения математической части.
+Для MVP это не требует отдельного сетевого Python-сервиса: Go передаёт один JSON
+в `stdin` и получает один JSON из `stdout`. При росте нагрузки тот же контракт
+можно перенести в очередь и Python worker без изменения HTTP API и математики.
 
 ## Python-контракт
 
-Backend вызывает один стабильный фасад:
+Процессный адаптер внутри Python вызывает стабильный фасад:
 
 ```python
 from routing_opt import solve, validate_solution
@@ -50,9 +50,9 @@ if not report.valid:
 - `ortools` — основной solver;
 - `hgs` — исследовательский Hybrid Genetic Search.
 
-Вызов синхронный и CPU-bound. В FastAPI его нельзя выполнять непосредственно в
-асинхронном event loop: используйте обычный `def` endpoint, thread pool или
-фоновый worker.
+Go запускает solver через `exec.CommandContext` с ограниченным timeout. Сейчас
+`POST /api/v1/plans` синхронный; следующая стадия масштабирования — очередь задач
+и отдельный worker с тем же JSON-контрактом.
 
 ## Что backend передаёт алгоритму
 
@@ -69,18 +69,17 @@ if not report.valid:
 Backend не должен передавать solver’у бригаду из контрольного распределения.
 Контроль используется только после расчёта для аналитического сравнения.
 
-Backend отвечает за:
+Go backend отвечает за:
 
 - проверку входного JSON;
-- перевод ISO 8601/`HH:MM` во внутренние минуты дня;
-- геокодирование и кэш координат;
-- получение/кэш матриц;
+- хранение времени как `HH:MM`/PostgreSQL `time`;
+- хранение координат (до подключения геокодера они обязательны во входе);
 - хранение планов и событий;
 - выбор solver, time limit и seed;
-- вызов независимого валидатора;
+- запуск процессного адаптера и контроль timeout;
 - получение дорожной геометрии только для уже выбранных маршрутов.
 
-Solver отвечает за:
+Python solver отвечает за:
 
 - назначение заявок;
 - порядок посещения;
@@ -88,6 +87,10 @@ Solver отвечает за:
 - соблюдение навыков, транспорта, окон и смен;
 - неназначенные заявки и машинно-читаемые причины;
 - расчёт маршрутных метрик.
+
+Без внешнего провайдера bridge строит детерминированную Haversine-матрицу. Если
+задан `OSRM_BASE_URL`, Python использует OSRM Table для времени/расстояния, а Go
+использует OSRM Route для GeoJSON готовых маршрутов. HTTP-контракт не меняется.
 
 ## Предлагаемый HTTP API backend
 
@@ -98,9 +101,20 @@ POST /api/v1/plans
 Content-Type: application/json
 ```
 
-Тело соответствует `solver/contracts/plan_request.example.json`. Для хакатонного
-MVP endpoint может синхронно вернуть `200 OK` с готовым планом. Если расчёт
-переносится в очередь:
+Текущий endpoint использует все активные сущности либо переданные UUID:
+
+```json
+{
+  "request_ids": [],
+  "brigade_ids": [],
+  "solver_name": "ortools",
+  "time_limit_seconds": 10,
+  "seed": 42
+}
+```
+
+MVP синхронно возвращает `201 Created`: объект плана с полем `solution`. Если
+расчёт позднее переносится в очередь, первоначальный ответ может стать таким:
 
 ```json
 {
@@ -124,31 +138,32 @@ POST /api/v1/plans/{plan_id}/events
 Примеры событий:
 
 ```json
-{"type": "cancel_job", "job_id": "74198"}
+{"type":"cancel_request","payload":{"request_id":"UUID"}}
 ```
 
 ```json
-{"type": "engineer_unavailable", "engineer_id": "east-engineer-03"}
+{"type":"brigade_unavailable","payload":{"brigade_id":"UUID"}}
 ```
 
 ```json
 {
-  "type": "new_urgent_job",
-  "job": {
-    "id": "urgent-1",
-    "location_id": "location-urgent-1",
+  "type": "new_urgent_request",
+  "payload": {
+    "address": "Москва, Тверская улица, 1",
+    "latitude": 55.7578,
+    "longitude": 37.6156,
     "service_minutes": 80,
     "window_start": "14:00",
     "window_end": "16:00",
     "required_skill": "emergency",
-    "priority": "urgent"
+    "required_transport": null
   }
 }
 ```
 
-Backend применяет событие через `apply_event`, обновляет координаты/матрицы для
-новой точки, вызывает solver с `previous_assignments` и возвращает новый план
-вместе с `compare_plans(before, after)`.
+Backend фиксирует событие в `replan_events`, меняет статус сущности или создаёт
+срочную заявку, извлекает назначения исходного плана как
+`previous_assignments` и возвращает новый план со ссылкой на исходный.
 
 ## Что алгоритм возвращает backend
 
@@ -163,11 +178,11 @@ Backend применяет событие через `apply_event`, обновл
 - неназначенные заявки с `code` и понятным `message`;
 - runtime, seed, имя алгоритма и диагностические metadata.
 
-Backend сериализует результат через `solution_to_dict()` или
-`save_solution_json()`. Пример находится в
+Python bridge сериализует результат через `solution_to_dict()`, Go сохраняет его
+в `plans.solution` и нормализованных таблицах. Пример базового solution находится в
 `solver/contracts/plan_response.example.json`.
 
-Дорожную polyline рекомендуется возвращать отдельно в стандартном GeoJSON:
+Дорожная polyline возвращается в `solution.routes[].geometry` как GeoJSON:
 
 ```json
 {
@@ -185,10 +200,10 @@ Backend сериализует результат через `solution_to_dict()
 ## Семантика ошибок
 
 - `422 Unprocessable Entity` — некорректные поля, неизвестные навыки/транспорт;
-- `503 Service Unavailable` — недоступен routing/geocoding provider и нет кэша;
-- `200 OK` + `status=partial` — корректный план, но часть заявок не назначена;
-- `500 Internal Server Error` — solver вернул решение, не прошедшее независимый
-  валидатор; такой результат нельзя отдавать frontend как успешный.
+- `503 Service Unavailable` — solver не запустился, превысил timeout или вернул
+  решение, не прошедшее независимый валидатор;
+- `201 Created` + `status=partial` внутри solution — корректный план, но часть
+  заявок не назначена.
 
 Неназначенные заявки не являются HTTP-ошибкой. Frontend должен показывать их
 отдельным списком и использовать `code` для фильтрации/локализации сообщения.

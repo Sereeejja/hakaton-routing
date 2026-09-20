@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: routing
+      POSTGRES_USER: routing
+      POSTGRES_PASSWORD: routing
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U routing -d routing"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - routing-postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgres://routing:routing@postgres:5432/routing?sslmode=disable
+      OSRM_BASE_URL: ${OSRM_BASE_URL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+volumes:
+  routing-postgres:

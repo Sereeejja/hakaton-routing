@@ -97,6 +97,10 @@ solution = solve(
 ```
 
 Полный HTTP- и Python-контракт описан в `../docs/backend-integration.md`.
+Go backend вызывает этот фасад через модуль `routing_opt.backend_bridge`: один
+JSON передаётся через `stdin`, один JSON-результат читается из `stdout`. При
+`routing_base_url` bridge строит матрицу через OSRM Table, иначе использует
+детерминированное Haversine-приближение.
 
 ## Исходные данные организаторов
 

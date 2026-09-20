@@ -1,0 +1,12 @@
+.git
+.DS_Store
+.env
+**/.env
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.ipynb_checkpoints
+data/raw
+solver/outputs
+solver/.cache
