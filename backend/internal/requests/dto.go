@@ -19,3 +19,7 @@ type CreateDTO struct {
 type UpdateStatusDTO struct {
 	Status string `json:"status" enums:"pending,planned,completed,canceled"`
 }
+
+type DeleteAllResponse struct {
+	DeletedCount int64 `json:"deleted_count" example:"12"`
+}

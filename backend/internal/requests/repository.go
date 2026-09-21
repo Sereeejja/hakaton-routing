@@ -16,6 +16,8 @@ type Repository interface {
 	List(context.Context) ([]Request, error)
 	Get(context.Context, uuid.UUID) (Request, error)
 	UpdateStatus(context.Context, uuid.UUID, string) (Request, error)
+	Delete(context.Context, uuid.UUID) error
+	DeleteAll(context.Context) (int64, error)
 }
 
 type PostgresRepository struct {
@@ -104,4 +106,67 @@ func (r *PostgresRepository) UpdateStatus(ctx context.Context, id uuid.UUID, sta
 		return Request{}, fmt.Errorf("update request status: %w", err)
 	}
 	return item, nil
+}
+
+func (r *PostgresRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin delete request: %w", err)
+	}
+	defer tx.Rollback()
+
+	// A saved plan is an immutable snapshot of its input. Once one of its
+	// requests is removed, the snapshot is no longer valid, so remove the whole
+	// affected plan and let its routes/stops/events cascade.
+	if _, err = tx.ExecContext(ctx, `DELETE FROM plans WHERE id IN (
+		SELECT pr.plan_id
+		FROM plan_routes pr
+		JOIN plan_stops ps ON ps.route_id = pr.id
+		WHERE ps.request_id = $1
+		UNION
+		SELECT plan_id FROM plan_unassigned WHERE request_id = $1
+	)`, id); err != nil {
+		return fmt.Errorf("delete request plans: %w", err)
+	}
+	result, err := tx.ExecContext(ctx, "DELETE FROM requests WHERE id = $1", id)
+	if err != nil {
+		return fmt.Errorf("delete request: %w", err)
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete request rows: %w", err)
+	}
+	if count == 0 {
+		return ErrNotFound
+	}
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit delete request: %w", err)
+	}
+	return nil
+}
+
+func (r *PostgresRepository) DeleteAll(ctx context.Context) (int64, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("begin clear requests: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Plans refer to requests both relationally and inside their JSON snapshot.
+	// Clearing requests therefore also clears plans, while brigades stay intact.
+	if _, err = tx.ExecContext(ctx, "DELETE FROM plans"); err != nil {
+		return 0, fmt.Errorf("clear request plans: %w", err)
+	}
+	result, err := tx.ExecContext(ctx, "DELETE FROM requests")
+	if err != nil {
+		return 0, fmt.Errorf("clear requests: %w", err)
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("clear request rows: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit clear requests: %w", err)
+	}
+	return count, nil
 }

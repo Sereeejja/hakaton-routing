@@ -20,9 +20,8 @@ docker compose up --build
 - healthcheck: <http://localhost:8080/healthz>;
 - PostgreSQL: `localhost:5432`, база/пользователь/пароль `routing`.
 
-Docker в текущей машине не установлен, поэтому compose-конфигурация проверяется
-структурно и сборкой Go, но полный контейнерный smoke test нужно выполнить на
-машине с Docker.
+При первом запуске сборка скачает Go-, Python- и npm-зависимости. React-фронтенд
+собирается в отдельном Docker stage и затем раздаётся Go-сервером.
 
 ## Локальная разработка
 
@@ -37,6 +36,17 @@ export SOLVER_PYTHON='../solver/.venv/bin/python'
 make run
 ```
 
+React-интерфейс с hot reload запускается отдельно (backend должен работать на
+`:8080`, запросы проксируются автоматически):
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Откройте <http://localhost:5173>.
+
 Миграции `*.up.sql` применяются при старте. Это отключается через
 `AUTO_MIGRATE=false`.
 
@@ -46,6 +56,8 @@ make run
 |---|---|---|
 | `POST` | `/api/v1/requests/` | Создать заявку |
 | `GET` | `/api/v1/requests/` | Получить заявки |
+| `DELETE` | `/api/v1/requests/` | Удалить все заявки и планы, сохранив бригады |
+| `DELETE` | `/api/v1/requests/{id}` | Удалить заявку и связанные с ней планы |
 | `PATCH` | `/api/v1/requests/{id}/status` | Сменить жизненный статус |
 | `POST` | `/api/v1/brigades/` | Создать бригаду |
 | `GET` | `/api/v1/brigades/` | Получить бригады |
@@ -103,14 +115,18 @@ make swagger
 
 ## Маршрутная геометрия
 
-По умолчанию solver использует приближённую Haversine-матрицу, а backend
-возвращает GeoJSON `LineString` по точкам маршрута. Для дорожной матрицы времени,
-расстояний и дорожной геометрии задайте разрешённый OSRM endpoint:
+В `docker compose` по умолчанию задан публичный демонстрационный OSRM: он даёт
+дорожную матрицу времени, расстояния и GeoJSON-геометрию вдоль дорог. Для
+нагруженного или автономного окружения задайте свой endpoint:
 
 ```bash
-OSRM_BASE_URL=https://router.project-osrm.org docker compose up --build
+OSRM_BASE_URL=https://your-osrm.example docker compose up --build
 ```
 
-Для геометрии при ошибке OSRM срабатывает fallback на прямые линии. Ошибка Table
-API останавливает расчёт, чтобы backend не выдавал расписание по неожиданно
-другой матрице.
+При ошибке Route API маршрут остаётся без геометрии и UI явно показывает ошибку:
+прямая линия вместо дороги намеренно не рисуется. Ошибка Table API останавливает
+расчёт, чтобы backend не выдавал расписание по неожиданно другой матрице.
+
+Чтобы полностью отключить внешний routing и вернуться к Haversine/прямой
+геометрии только для отладки, запустите backend вне compose без
+`OSRM_BASE_URL`.

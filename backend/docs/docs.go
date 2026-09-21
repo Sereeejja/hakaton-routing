@@ -351,6 +351,24 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Удаляет все заявки и построенные по ним планы. Бригады сохраняются.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Удалить все заявки",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/requests.DeleteAllResponse"
+                        }
+                    }
+                }
             }
         },
         "/requests/{id}": {
@@ -377,6 +395,33 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/requests.Request"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/web.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаляет заявку и построенные планы, в которых она использовалась.",
+                "tags": [
+                    "requests"
+                ],
+                "summary": "Удалить заявку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "404": {
                         "description": "Not Found",
@@ -762,6 +807,15 @@ const docTemplate = `{
                 "window_start": {
                     "type": "string",
                     "example": "10:00"
+                }
+            }
+        },
+        "requests.DeleteAllResponse": {
+            "type": "object",
+            "properties": {
+                "deleted_count": {
+                    "type": "integer",
+                    "example": 12
                 }
             }
         },

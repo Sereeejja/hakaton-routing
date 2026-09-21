@@ -68,9 +68,7 @@ func run() error {
 
 	var routeClient routing.Client = routing.StraightLineClient{}
 	if cfg.OSRMBaseURL != "" {
-		routeClient = routing.FallbackClient{
-			Primary: routing.NewOSRMClient(cfg.OSRMBaseURL), Fallback: routing.StraightLineClient{},
-		}
+		routeClient = routing.NewOSRMClient(cfg.OSRMBaseURL)
 	}
 	pythonPlanner := planning.NewPythonPlanner(cfg.SolverPython, cfg.SolverPythonPath, cfg.SolverTimeout)
 	planningService := planning.NewService(

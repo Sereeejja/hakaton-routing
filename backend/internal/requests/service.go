@@ -46,6 +46,14 @@ func (s *Service) UpdateStatus(ctx context.Context, id uuid.UUID, status string)
 	return s.repository.UpdateStatus(ctx, id, status)
 }
 
+func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
+	return s.repository.Delete(ctx, id)
+}
+
+func (s *Service) DeleteAll(ctx context.Context) (int64, error) {
+	return s.repository.DeleteAll(ctx)
+}
+
 func validateCreate(dto CreateDTO) error {
 	if dto.Address == "" {
 		return fmt.Errorf("%w: address is required", ErrValidation)
