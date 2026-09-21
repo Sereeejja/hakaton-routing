@@ -21,7 +21,9 @@ func (h *Handler) Routes() chi.Router {
 	router := chi.NewRouter()
 	router.Get("/", h.List)
 	router.Post("/", h.Create)
+	router.Delete("/", h.DeleteAll)
 	router.Get("/{id}", h.Get)
+	router.Delete("/{id}", h.Delete)
 	router.Patch("/{id}/status", h.UpdateStatus)
 	return router
 }
@@ -110,6 +112,43 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.JSON(w, http.StatusOK, item)
+}
+
+// Delete godoc
+// @Summary Удалить заявку
+// @Description Удаляет заявку и построенные планы, в которых она использовалась.
+// @Tags requests
+// @Param id path string true "UUID заявки"
+// @Success 204
+// @Failure 404 {object} web.ErrorResponse
+// @Router /requests/{id} [delete]
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		web.Error(w, http.StatusBadRequest, "invalid_id", "id must be UUID")
+		return
+	}
+	if err := h.service.Delete(r.Context(), id); err != nil {
+		writeError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteAll godoc
+// @Summary Удалить все заявки
+// @Description Удаляет все заявки и построенные по ним планы. Бригады сохраняются.
+// @Tags requests
+// @Produce json
+// @Success 200 {object} DeleteAllResponse
+// @Router /requests/ [delete]
+func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
+	count, err := h.service.DeleteAll(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	web.JSON(w, http.StatusOK, DeleteAllResponse{DeletedCount: count})
 }
 
 func writeError(w http.ResponseWriter, err error) {

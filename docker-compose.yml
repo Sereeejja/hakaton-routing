@@ -21,10 +21,16 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       DATABASE_URL: postgres://routing:routing@postgres:5432/routing?sslmode=disable
-      OSRM_BASE_URL: ${OSRM_BASE_URL:-}
+      OSRM_BASE_URL: ${OSRM_BASE_URL:-https://router.project-osrm.org}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 10s
     ports:
       - "8080:8080"
 

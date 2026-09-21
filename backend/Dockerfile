@@ -6,6 +6,14 @@ RUN go mod download
 COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/routing-api ./cmd/server
 
+FROM node:22-alpine AS frontend-builder
+
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
 FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -24,7 +32,7 @@ RUN pip install --no-cache-dir "/app/solver[ortools]"
 
 COPY --from=builder /out/routing-api /usr/local/bin/routing-api
 COPY backend/migrations/ /app/backend/migrations/
-COPY frontend/ /app/frontend/
+COPY --from=frontend-builder /src/frontend/dist/ /app/frontend/
 
 RUN useradd --uid 10001 --home-dir /app --shell /usr/sbin/nologin routing \
     && mkdir -p /app/.cache \

@@ -1,129 +1,14 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Routecraft — диспетчер маршрутов</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet">
-  <link href="/styles.css" rel="stylesheet">
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#top" aria-label="Routecraft">
-      <span class="brand-mark">R</span>
-      <span>routecraft</span>
-    </a>
-    <nav>
-      <a href="#requests">Заявки</a>
-      <a href="#brigades">Бригады</a>
-      <a href="#planning">Планирование</a>
-      <a href="/swagger/index.html" target="_blank" rel="noreferrer">API ↗</a>
-    </nav>
-    <div id="api-status" class="api-status"><span></span> Проверяем API</div>
-  </header>
-
-  <main id="top">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">Операционный центр · Москва</p>
-        <h1>Маршруты, которые<br><em>успевают вовремя.</em></h1>
-        <p class="hero-copy">Заявки, ресурсы и ограничения сходятся в одном плане. Запускайте оптимизацию и сразу проверяйте результат на карте.</p>
-      </div>
-      <div class="hero-actions">
-        <button id="demo-button" class="button button-primary">Загрузить демо-данные</button>
-        <a class="button button-ghost" href="#planning">Перейти к расчёту</a>
-      </div>
-    </section>
-
-    <section class="stats" aria-label="Сводка">
-      <article><span>Заявок</span><strong id="request-count">0</strong><small id="urgent-count">0 срочных</small></article>
-      <article><span>Доступно бригад</span><strong id="brigade-count">0</strong><small>на текущую смену</small></article>
-      <article><span>Последний план</span><strong id="plan-status">—</strong><small id="plan-runtime">ещё не рассчитан</small></article>
-      <article class="accent-stat"><span>Выполнено</span><strong id="completion-rate">—</strong><small>заявок в плане</small></article>
-    </section>
-
-    <section class="workspace two-column" id="requests">
-      <div class="section-heading">
-        <div><p class="eyebrow">01 · Входящий поток</p><h2>Заявки</h2></div>
-        <span class="hint">Координаты обязательны до подключения геокодера</span>
-      </div>
-      <div class="panel form-panel">
-        <h3>Новая заявка</h3>
-        <form id="request-form" class="form-grid">
-          <label class="span-2">Адрес<input name="address" required value="Москва, Тверская улица, 7"></label>
-          <label>Широта<input name="latitude" type="number" step="any" required value="55.7575"></label>
-          <label>Долгота<input name="longitude" type="number" step="any" required value="37.6136"></label>
-          <label>Начало окна<input name="window_start" type="time" required value="10:00"></label>
-          <label>Конец окна<input name="window_end" type="time" required value="13:00"></label>
-          <label>Работа, мин<input name="service_minutes" type="number" min="1" required value="70"></label>
-          <label>Навык<select name="required_skill"><option value="connection">Подключение</option><option value="local">Локальные работы</option><option value="emergency">Авария</option></select></label>
-          <label>Приоритет<select name="priority"><option value="normal">Обычный</option><option value="urgent">Срочный</option></select></label>
-          <label>Транспорт<select name="required_transport"><option value="">Любой</option><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option><option value="public_transit">Общественный</option></select></label>
-          <button class="button button-dark span-2" type="submit">Добавить заявку</button>
-        </form>
-      </div>
-      <div class="panel table-panel">
-        <div class="panel-title"><h3>Очередь</h3><button class="text-button" data-refresh>Обновить</button></div>
-        <div class="table-scroll"><table><thead><tr><th>Адрес</th><th>Окно</th><th>Тип</th><th>Статус</th></tr></thead><tbody id="requests-table"></tbody></table></div>
-        <div id="requests-empty" class="empty">Пока нет заявок. Добавьте вручную или загрузите демо.</div>
-      </div>
-    </section>
-
-    <section class="workspace two-column" id="brigades">
-      <div class="section-heading">
-        <div><p class="eyebrow">02 · Ресурсы</p><h2>Бригады</h2></div>
-        <span class="hint">Навыки задают допустимые назначения</span>
-      </div>
-      <div class="panel form-panel">
-        <h3>Новая бригада</h3>
-        <form id="brigade-form" class="form-grid">
-          <label class="span-2">Название<input name="name" required value="Бригада Восток-1"></label>
-          <label class="span-2">Точка старта<input name="start_address" required value="Москва, Измайловское шоссе, 1"></label>
-          <label>Широта<input name="start_latitude" type="number" step="any" required value="55.7891"></label>
-          <label>Долгота<input name="start_longitude" type="number" step="any" required value="37.7488"></label>
-          <label>Начало смены<input name="shift_start" type="time" required value="09:00"></label>
-          <label>Конец смены<input name="shift_end" type="time" required value="20:00"></label>
-          <label>Транспорт<select name="transport"><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option><option value="public_transit">Общественный</option></select></label>
-          <fieldset><legend>Навыки</legend><label><input type="checkbox" name="skills" value="connection" checked> Подключение</label><label><input type="checkbox" name="skills" value="local" checked> Локальные</label><label><input type="checkbox" name="skills" value="emergency"> Авария</label></fieldset>
-          <button class="button button-dark span-2" type="submit">Добавить бригаду</button>
-        </form>
-      </div>
-      <div class="panel table-panel">
-        <div class="panel-title"><h3>Команды на смене</h3><button class="text-button" data-refresh>Обновить</button></div>
-        <div id="brigades-list" class="brigade-list"></div>
-        <div id="brigades-empty" class="empty">Нет доступных бригад.</div>
-      </div>
-    </section>
-
-    <section class="planning" id="planning">
-      <div class="section-heading light">
-        <div><p class="eyebrow">03 · Оптимизация</p><h2>Построить план</h2></div>
-        <p>Сначала полнота выполнения, затем число активных бригад и пробег.</p>
-      </div>
-      <div class="planner-controls">
-        <label>Алгоритм<select id="solver-name"><option value="ortools">OR-Tools · основной</option><option value="improved_greedy">Improved greedy</option><option value="greedy">Baseline greedy</option><option value="hgs">Hybrid Genetic Search</option></select></label>
-        <label>Лимит, сек<input id="time-limit" type="number" min="1" max="120" value="10"></label>
-        <label>Seed<input id="seed" type="number" value="42"></label>
-        <button id="plan-button" class="button button-lime">Рассчитать маршруты <span>→</span></button>
-      </div>
-      <div id="plan-error" class="alert hidden"></div>
-      <div id="plan-placeholder" class="plan-placeholder"><span>↗</span><p>Здесь появится последний рассчитанный план</p></div>
-      <div id="plan-result" class="plan-result hidden">
-        <div class="result-summary" id="result-summary"></div>
-        <div class="result-grid">
-          <div class="map-wrap"><div id="map"></div><div class="map-credit">OpenFreeMap · © OpenMapTiles · © OpenStreetMap</div></div>
-          <div id="route-list" class="route-list"></div>
-        </div>
-        <div id="unassigned" class="unassigned hidden"></div>
-      </div>
-    </section>
-  </main>
-
-  <div id="toast" class="toast" role="status"></div>
-  <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-  <script src="/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10130f" />
+    <meta name="description" content="Интерактивное планирование выездных маршрутов" />
+    <title>Routecraft — диспетчер маршрутов</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

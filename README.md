@@ -18,7 +18,7 @@
 │   ├── source/              # исходные документы организаторов
 │   └── data-audit.md        # результаты первичного аудита
 ├── backend/                 # Go API, PostgreSQL, миграции и Swagger
-├── frontend/                # web-панель диспетчера
+├── frontend/                # React + TypeScript web-панель диспетчера
 ├── solver/                  # модели, алгоритмы, тесты и ноутбуки
 ├── docker-compose.yml       # PostgreSQL + backend + solver + frontend
 └── README.md
@@ -47,6 +47,29 @@ docker compose up --build
 Web-интерфейс откроется на <http://localhost:8080>, Swagger — на
 <http://localhost:8080/swagger/index.html>. Подробности находятся в
 [`backend/README.md`](backend/README.md).
+
+В интерфейсе точки ставятся кликом по карте. По умолчанию compose использует
+публичный OSRM для дорожной матрицы и геометрии; для автономной работы укажите
+свой `OSRM_BASE_URL`.
+
+## Проверка перед сдачей
+
+Полный локальный набор тестов (Go, Python, React, TypeScript и production build):
+
+```bash
+./scripts/verify.sh
+```
+
+После `docker compose up --build` развёрнутый стенд должен пройти smoke-тест:
+
+```bash
+./scripts/smoke-test.sh
+```
+
+Он проверяет healthcheck и подключение к БД, выдачу React-приложения, Swagger,
+а также полный цикл создания, чтения и удаления тестовой заявки. Массовая
+очистка защищена отдельными backend-тестами и в smoke-тесте не вызывается, чтобы
+не удалить пользовательские данные.
 
 ## Быстрый старт алгоритмов
 

@@ -233,6 +233,12 @@ definitions:
         example: "10:00"
         type: string
     type: object
+  requests.DeleteAllResponse:
+    properties:
+      deleted_count:
+        example: 12
+        type: integer
+    type: object
   requests.Request:
     properties:
       address:
@@ -492,6 +498,18 @@ paths:
       tags:
       - replanning
   /requests/:
+    delete:
+      description: Удаляет все заявки и построенные по ним планы. Бригады сохраняются.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/requests.DeleteAllResponse'
+      summary: Удалить все заявки
+      tags:
+      - requests
     get:
       produces:
       - application/json
@@ -530,6 +548,24 @@ paths:
       tags:
       - requests
   /requests/{id}:
+    delete:
+      description: Удаляет заявку и построенные планы, в которых она использовалась.
+      parameters:
+      - description: UUID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      summary: Удалить заявку
+      tags:
+      - requests
     get:
       parameters:
       - description: UUID заявки

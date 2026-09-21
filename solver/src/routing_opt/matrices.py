@@ -94,11 +94,18 @@ class OsrmTableClient:
                     for column_offset, destination_index in enumerate(destination_indices):
                         seconds = payload["durations"][row_offset][column_offset]
                         meters = payload["distances"][row_offset][column_offset]
+                        duration_seconds = _finite_non_negative(seconds)
+                        distance_meters = _finite_non_negative(meters)
+                        # Public OSRM instances may encode an unreachable arc as
+                        # null, NaN or infinity. All of them mean the same thing
+                        # to the solvers: this directed leg cannot be used.
                         times[source_index][destination_index] = (
-                            None if seconds is None else math.ceil(float(seconds) / 60)
+                            None
+                            if duration_seconds is None
+                            else math.ceil(duration_seconds / 60)
                         )
                         distances[source_index][destination_index] = (
-                            None if meters is None else float(meters) / 1000
+                            None if distance_meters is None else distance_meters / 1000
                         )
         return TravelMatrices(
             location_ids=tuple(location.id for location in items),
@@ -176,6 +183,18 @@ def unreachable_pairs(matrices: TravelMatrices) -> tuple[tuple[str, str], ...]:
             ):
                 result.append((source, destination))
     return tuple(result)
+
+
+def _finite_non_negative(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    return number
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
