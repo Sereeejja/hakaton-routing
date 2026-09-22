@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
-from math import isfinite
+from math import ceil, isfinite
 from statistics import pstdev
 from types import MappingProxyType
 from typing import Any
@@ -191,6 +191,36 @@ class Problem:
     @property
     def locations_by_id(self) -> dict[str, Location]:
         return {location.id: location for location in self.locations}
+
+    def travel_minutes_for(
+        self,
+        engineer: Engineer,
+        from_location: str,
+        to_location: str,
+    ) -> int | None:
+        """Return deterministic travel time adjusted for the engineer's transport.
+
+        The shared road matrix is the only provider-independent input available
+        in the hackathon data. Cars use its duration directly; other modes use
+        the road distance and documented average speeds. Public transit includes
+        a small boarding/waiting allowance for each non-zero leg.
+        """
+
+        base_minutes = self.matrices.travel_minutes(from_location, to_location)
+        distance = self.matrices.distance(from_location, to_location)
+        if base_minutes is None or distance is None:
+            return None
+        if from_location == to_location or distance == 0:
+            return 0
+        if engineer.transport is Transport.CAR:
+            return max(1, base_minutes)
+        speed_kmh = {
+            Transport.WALK: 5.0,
+            Transport.BICYCLE: 15.0,
+            Transport.PUBLIC_TRANSIT: 22.0,
+        }[engineer.transport]
+        boarding_minutes = 5 if engineer.transport is Transport.PUBLIC_TRANSIT else 0
+        return max(1, ceil(distance / speed_kmh * 60) + boarding_minutes)
 
 
 @dataclass(frozen=True, slots=True)

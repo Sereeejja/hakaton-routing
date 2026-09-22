@@ -46,7 +46,7 @@ def evaluate_route(
         job = jobs[job_id]
         if not engineer.is_compatible(job) or not job.planning_eligible:
             compatibility_violations += 1
-        travel = problem.matrices.travel_minutes(current_location, job.location_id)
+        travel = problem.travel_minutes_for(engineer, current_location, job.location_id)
         distance = problem.matrices.distance(current_location, job.location_id)
         if travel is None or distance is None:
             unreachable += 1

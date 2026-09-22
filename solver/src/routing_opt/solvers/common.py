@@ -41,7 +41,9 @@ def explain_unassigned(problem: Problem, job: Job) -> UnassignedJob:
     saw_reachable = False
     saw_window_fit = False
     for engineer in compatible:
-        travel = problem.matrices.travel_minutes(engineer.start_location_id, job.location_id)
+        travel = problem.travel_minutes_for(
+            engineer, engineer.start_location_id, job.location_id
+        )
         distance = problem.matrices.distance(engineer.start_location_id, job.location_id)
         if travel is None or distance is None:
             continue

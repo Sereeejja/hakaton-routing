@@ -111,7 +111,7 @@ def load_zone_dataset(
                 window_start=_parse_minutes(row["Начало"]),
                 window_end=_parse_minutes(row["Окончание"]),
                 required_skill=skill,
-                priority=Priority.NORMAL,
+                priority=Priority.URGENT if hd_type == "Авария" else Priority.NORMAL,
                 planning_eligible=planning_eligible,
                 metadata={
                     "zone": zone,
@@ -148,7 +148,7 @@ def load_zone_dataset(
             "info_policy": config.info_policy,
             "assumptions": [
                 "demo engineers are synthetic and do not use control assignments",
-                "all source priorities are normal because priority is absent",
+                "HD type Авария is urgent; other source priorities are normal",
                 "job transport requirement is absent",
             ],
         },

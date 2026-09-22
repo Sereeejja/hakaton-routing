@@ -294,6 +294,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .metric-grid span { color: #8b9188; font-size: 7px; }
 .metric-grid strong { margin-top: auto; font-size: 17px; letter-spacing: -.04em; }
 .metric-grid small { color: #7c8378; font-size: 8px; font-weight: 500; }
+.baseline-comparison { margin: 12px 25px 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(251,252,247,.76); }
+.baseline-comparison header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.baseline-comparison header span { color: #697065; font-size: 7px; font-weight: 800; letter-spacing: .09em; }
+.baseline-comparison header small { color: #9a9f96; font-size: 6px; text-align: right; }
+.baseline-comparison > div { display: grid; grid-template-columns: 1fr 60px 60px; gap: 6px; align-items: center; padding-top: 8px; }
+.baseline-comparison > div span, .baseline-comparison > div b { color: #92988f; font-size: 6px; font-style: normal; }
+.baseline-comparison > div b { text-align: right; text-transform: uppercase; letter-spacing: .06em; }
+.baseline-comparison > div strong, .baseline-comparison > div em { text-align: right; font-size: 7px; font-style: normal; }
+.baseline-comparison > div strong { color: #304015; }
+.baseline-comparison > div em { color: #858b82; }
 .route-warning { display: flex; gap: 8px; padding: 10px 11px; margin: 12px 25px 0; border-radius: 10px; color: #80503c; background: #f8e3d9; }
 .route-warning > svg { flex: 0 0 auto; }
 .route-warning div { display: flex; flex-direction: column; gap: 2px; }
@@ -330,6 +340,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .timeline-node strong { max-width: 240px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; }
 .timeline-node small { margin-top: 3px; color: #858b82; font-size: 7px; }
 .timeline-node button { align-self: flex-start; margin-top: 4px; padding: 0; color: #a58c83; border: 0; border-bottom: 1px dotted currentColor; background: none; font-size: 6px; cursor: pointer; }
+.assignment-explanation { margin-top: 5px; max-width: 255px; }
+.assignment-explanation summary { width: fit-content; color: #66704d; font-size: 6px; font-weight: 700; cursor: pointer; }
+.assignment-explanation p { margin: 5px 0 1px; padding: 7px 8px; color: #666d63; border-left: 2px solid var(--route-color); border-radius: 0 7px 7px 0; background: #f1f3eb; font-size: 7px; line-height: 1.45; }
 .unavailable-button { width: 100%; height: 33px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #e4d5ce; border-radius: 9px; color: #8b604d; background: #fbf1ec; font-size: 7px; cursor: pointer; }
 .unavailable-button:disabled { opacity: .5; cursor: wait; }
 .unassigned-block { margin: 12px 25px; padding: 11px; display: flex; flex-direction: column; gap: 5px; border-radius: 11px; color: #8a513d; background: #fae8df; }

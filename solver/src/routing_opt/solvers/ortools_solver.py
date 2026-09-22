@@ -57,22 +57,30 @@ class OrToolsSolver(Solver):
         jobs_by_id = problem.jobs_by_id
         node_to_job = {index: job_id for index, job_id in enumerate(node_jobs) if job_id}
 
-        def time_callback(from_index: int, to_index: int) -> int:
-            from_node = manager.IndexToNode(from_index)
-            from_job_id = node_to_job.get(from_node)
-            service = jobs_by_id[from_job_id].service_minutes if from_job_id else 0
-            if routing.IsEnd(to_index):
-                return service
-            to_node = manager.IndexToNode(to_index)
-            travel = problem.matrices.travel_minutes(
-                node_locations[from_node], node_locations[to_node]
-            )
-            return service + (travel if travel is not None else 1_000_000)
+        time_callback_indices: list[int] = []
+        for engineer in problem.engineers:
+            def time_callback(
+                from_index: int,
+                to_index: int,
+                vehicle_engineer: Any = engineer,
+            ) -> int:
+                from_node = manager.IndexToNode(from_index)
+                from_job_id = node_to_job.get(from_node)
+                service = jobs_by_id[from_job_id].service_minutes if from_job_id else 0
+                if routing.IsEnd(to_index):
+                    return service
+                to_node = manager.IndexToNode(to_index)
+                travel = problem.travel_minutes_for(
+                    vehicle_engineer,
+                    node_locations[from_node],
+                    node_locations[to_node],
+                )
+                return service + (travel if travel is not None else 1_000_000)
 
-        time_callback_index = routing.RegisterTransitCallback(time_callback)
+            time_callback_indices.append(routing.RegisterTransitCallback(time_callback))
         horizon = max(engineer.shift_end for engineer in problem.engineers)
-        routing.AddDimension(
-            time_callback_index,
+        routing.AddDimensionWithVehicleTransits(
+            time_callback_indices,
             horizon,
             horizon,
             False,
@@ -177,7 +185,9 @@ class OrToolsSolver(Solver):
                 node = manager.IndexToNode(next_index)
                 job_id = node_to_job[node]
                 job = jobs_by_id[job_id]
-                travel = problem.matrices.travel_minutes(current_location, job.location_id)
+                travel = problem.travel_minutes_for(
+                    engineer, current_location, job.location_id
+                )
                 distance = problem.matrices.distance(current_location, job.location_id)
                 if travel is None or distance is None:
                     raise RuntimeError("OR-Tools selected an unreachable matrix leg")

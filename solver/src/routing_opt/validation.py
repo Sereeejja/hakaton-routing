@@ -61,7 +61,9 @@ def validate_solution(problem: Problem, solution: Solution) -> ValidationReport:
                 errors.append(f"{engineer.id}: invalid sequence number at job {job.id}")
             if stop.from_location_id != current_location:
                 errors.append(f"{engineer.id}: invalid predecessor for job {job.id}")
-            expected_travel = problem.matrices.travel_minutes(current_location, job.location_id)
+            expected_travel = problem.travel_minutes_for(
+                engineer, current_location, job.location_id
+            )
             expected_distance = problem.matrices.distance(current_location, job.location_id)
             if expected_travel is None or expected_distance is None:
                 errors.append(f"unreachable matrix leg to job {job.id}")

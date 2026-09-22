@@ -8,6 +8,17 @@ export function formatSkill(skill: string): string {
   return skillLabels[skill] ?? skill;
 }
 
+const transportLabels: Record<string, string> = {
+  car: "автомобиль",
+  walk: "пешком",
+  bicycle: "велосипед",
+  public_transit: "общественный транспорт",
+};
+
+export function formatTransport(transport: string): string {
+  return transportLabels[transport] ?? transport;
+}
+
 export function formatClock(totalMinutes: number): string {
   const normalized = Math.max(0, Math.round(totalMinutes));
   const hours = Math.floor(normalized / 60).toString().padStart(2, "0");

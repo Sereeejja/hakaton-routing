@@ -37,4 +37,10 @@ func TestPythonPlannerContract(t *testing.T) {
 	if result.Status != "feasible" || len(result.Routes) != 1 || len(result.Routes[0].Stops) != 1 {
 		t.Fatalf("unexpected result: %#v", result)
 	}
+	if result.Baseline == nil || result.Baseline.Metrics.CompletedJobs != 1 {
+		t.Fatalf("baseline comparison is missing: %#v", result.Baseline)
+	}
+	if result.Explanations["00000000-0000-0000-0000-000000000001"] == "" {
+		t.Fatal("request explanation is missing")
+	}
 }

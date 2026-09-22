@@ -38,3 +38,7 @@ def test_backend_bridge_solves_json_contract():
     )
     assert result["status"] == "feasible"
     assert result["routes"][0]["stops"][0]["job_id"] == "job-1"
+    assert "есть навык «локальные работы»" in result["explanations"]["job-1"]
+    assert "Переезд от предыдущей точки" in result["explanations"]["job-1"]
+    assert result["baseline"]["solver_name"] == "greedy_official"
+    assert result["baseline"]["metrics"]["completed_jobs"] == 1

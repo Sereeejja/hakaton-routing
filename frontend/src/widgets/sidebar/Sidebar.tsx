@@ -13,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import { formatSkill, shortAddress } from "../../shared/lib/format";
+import { formatSkill, formatTransport, shortAddress } from "../../shared/lib/format";
 import type { Brigade, PlacementMode, ServiceRequest } from "../../shared/types/domain";
 
 interface SidebarProps {
@@ -139,7 +139,7 @@ export function Sidebar({
             <div className="entity-copy">
               <strong>{brigade.name}</strong>
               <span>{shortAddress(brigade.start_address, 34)}</span>
-              <small>{brigade.shift_start}–{brigade.shift_end} · {brigade.transport}</small>
+              <small>{brigade.shift_start}–{brigade.shift_end} · {formatTransport(brigade.transport)}</small>
             </div>
             <i className="status-dot available" />
           </article>

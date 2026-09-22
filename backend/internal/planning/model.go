@@ -60,14 +60,21 @@ type SolverOptions struct {
 }
 
 type Result struct {
-	SolverName string          `json:"solver_name"`
-	Status     string          `json:"status"`
-	Routes     []Route         `json:"routes"`
-	Unassigned []Unassigned    `json:"unassigned"`
-	Metrics    Metrics         `json:"metrics"`
-	Seed       int             `json:"seed"`
-	Warnings   []string        `json:"warnings"`
-	Metadata   json.RawMessage `json:"metadata" swaggertype:"object"`
+	SolverName   string            `json:"solver_name"`
+	Status       string            `json:"status"`
+	Routes       []Route           `json:"routes"`
+	Unassigned   []Unassigned      `json:"unassigned"`
+	Metrics      Metrics           `json:"metrics"`
+	Seed         int               `json:"seed"`
+	Warnings     []string          `json:"warnings"`
+	Metadata     json.RawMessage   `json:"metadata" swaggertype:"object"`
+	Explanations map[string]string `json:"explanations"`
+	Baseline     *Baseline         `json:"baseline,omitempty"`
+}
+
+type Baseline struct {
+	SolverName string  `json:"solver_name"`
+	Metrics    Metrics `json:"metrics"`
 }
 
 type Route struct {

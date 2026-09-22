@@ -14,11 +14,12 @@ def explain_solution(problem: Problem, solution: Solution) -> dict[str, str]:
             transport_text = (
                 "транспортное ограничение отсутствует"
                 if job.required_transport is None
-                else f"транспорт {engineer.transport.value} соответствует требованию"
+                else f"транспорт «{_transport(engineer.transport.value)}» соответствует требованию"
             )
             explanations[job.id] = (
-                f"Назначено инженеру {engineer.id}: есть навык {job.required_skill.value}, "
-                f"{transport_text}; начало в {_clock(stop.service_start_minutes)} попадает "
+                f"Назначено инженеру {engineer.id}: есть навык «{_skill(job.required_skill.value)}», "
+                f"{transport_text}. Переезд от предыдущей точки — {stop.distance_km:.1f} км "
+                f"и {stop.travel_minutes} мин; начало в {_clock(stop.service_start_minutes)} попадает "
                 f"в окно {_clock(job.window_start)}–{_clock(job.window_end)}, завершение "
                 f"в {_clock(stop.service_end_minutes)} укладывается в смену."
             )
@@ -29,3 +30,20 @@ def explain_solution(problem: Problem, solution: Solution) -> dict[str, str]:
 
 def _clock(minutes: int) -> str:
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+def _skill(value: str) -> str:
+    return {
+        "connection": "подключение и дозаказы",
+        "local": "локальные работы",
+        "emergency": "аварийные работы",
+    }.get(value, value)
+
+
+def _transport(value: str) -> str:
+    return {
+        "car": "автомобиль",
+        "walk": "пешком",
+        "bicycle": "велосипед",
+        "public_transit": "общественный транспорт",
+    }.get(value, value)

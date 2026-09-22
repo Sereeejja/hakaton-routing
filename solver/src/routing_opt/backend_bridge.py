@@ -14,8 +14,9 @@ from .domain import (
     Skill,
     Transport,
 )
+from .explanations import explain_solution
 from .matrices import OsrmTableClient, haversine_matrices
-from .serialization import solution_to_dict
+from .serialization import solution_to_dict, to_primitive
 from .service import solve
 from .validation import validate_solution
 
@@ -95,7 +96,28 @@ def solve_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     report = validate_solution(problem, solution)
     if not report.valid:
         raise RuntimeError("Solver produced invalid solution: " + "; ".join(report.errors))
-    return solution_to_dict(solution)
+    baseline = (
+        solution
+        if solution.solver_name == "greedy_official"
+        else solve(
+            problem,
+            solver_name="greedy",
+            time_limit_sec=1,
+            seed=int(options.get("seed", 42)),
+        )
+    )
+    baseline_report = validate_solution(problem, baseline)
+    if not baseline_report.valid:
+        raise RuntimeError(
+            "Baseline produced invalid solution: " + "; ".join(baseline_report.errors)
+        )
+    result = solution_to_dict(solution)
+    result["explanations"] = explain_solution(problem, solution)
+    result["baseline"] = {
+        "solver_name": baseline.solver_name,
+        "metrics": to_primitive(baseline.metrics),
+    }
+    return result
 
 
 def main() -> int:

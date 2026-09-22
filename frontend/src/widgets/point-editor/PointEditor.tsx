@@ -119,7 +119,7 @@ export function PointEditor({
             </label>
             <label className="field-label">Нужный транспорт
               <select name="required_transport" defaultValue="">
-                <option value="">Любой</option><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option>
+                <option value="">Любой</option><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option><option value="public_transit">Общественный транспорт</option>
               </select>
             </label>
           </>
@@ -140,7 +140,7 @@ export function PointEditor({
               </label>
             </div>
             <label className="field-label">Транспорт
-              <select name="transport" defaultValue="car"><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option></select>
+              <select name="transport" defaultValue="car"><option value="car">Автомобиль</option><option value="walk">Пешком</option><option value="bicycle">Велосипед</option><option value="public_transit">Общественный транспорт</option></select>
             </label>
             <fieldset className="skills-field">
               <legend>Навыки бригады</legend>

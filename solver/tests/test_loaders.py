@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from routing_opt.domain import Priority
 from routing_opt.loaders import LoaderConfig, load_engineers_csv, load_zone_dataset
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +32,17 @@ def test_information_policy_supports_both_modes():
     assert len(field_info) == len(excluded_info) == 5
     assert all(job.planning_eligible for job in field_info)
     assert all(not job.planning_eligible for job in excluded_info)
+
+
+def test_source_accidents_are_urgent_but_information_is_not():
+    path = ROOT / "data" / "raw" / "east" / "jobs.csv"
+    draft = load_zone_dataset(path, "east")
+    accidents = [job for job in draft.jobs if job.metadata["hd_type"] == "Авария"]
+    information = [job for job in draft.jobs if job.metadata["hd_type"] == "Информация"]
+
+    assert accidents
+    assert all(job.priority is Priority.URGENT for job in accidents)
+    assert all(job.priority is Priority.NORMAL for job in information)
 
 
 def test_future_engineer_csv_contract(tmp_path):

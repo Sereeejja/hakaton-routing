@@ -30,11 +30,13 @@ function RouteTimeline({
   route,
   brigade,
   requests,
+  explanations,
   onApplyEvent,
 }: {
   route: PlannedRoute;
   brigade?: Brigade;
   requests: ServiceRequest[];
+  explanations: Record<string, string>;
   onApplyEvent: (type: string, payload: Record<string, string>) => void;
 }) {
   const requestById = new Map(requests.map((request) => [request.id, request]));
@@ -47,6 +49,10 @@ function RouteTimeline({
       {route.stops.map((stop, index) => {
         const request = requestById.get(stop.job_id);
         const isFinish = index === route.stops.length - 1;
+        const explanation = explanations[stop.job_id]?.replace(
+          `инженеру ${route.engineer_id}`,
+          `бригаде ${brigade?.name ?? route.engineer_id}`,
+        );
         return (
           <div className={`timeline-node ${isFinish ? "finish-node" : ""}`} key={stop.job_id}>
             <i>{isFinish ? <Flag size={12} /> : index + 1}</i>
@@ -54,6 +60,12 @@ function RouteTimeline({
               <span>{isFinish ? "ФИНИШ" : `ОСТАНОВКА ${index + 1}`} · {formatClock(stop.service_start_minutes)}</span>
               <strong title={request?.address}>{shortAddress(request?.address ?? stop.job_id, 42)}</strong>
               <small>{stop.travel_minutes} мин в пути · работа до {formatClock(stop.service_end_minutes)}</small>
+              {explanation && (
+                <details className="assignment-explanation">
+                  <summary>Почему назначено сюда</summary>
+                  <p>{explanation}</p>
+                </details>
+              )}
               <button type="button" onClick={() => onApplyEvent("cancel_request", { request_id: stop.job_id })}>Отменить заявку</button>
             </div>
           </div>
@@ -110,6 +122,18 @@ export function RouteInspector({
         <div><Gauge size={15} /><span>Расчёт</span><strong>{solution.metrics.runtime_seconds.toFixed(2)}<small> с</small></strong></div>
       </div>
 
+      {solution.baseline && (
+        <section className="baseline-comparison">
+          <header><span>СРАВНЕНИЕ С BASELINE</span><small>порядок входа · первый допустимый инженер</small></header>
+          <div>
+            <span>Метрика</span><b>План</b><b>Baseline</b>
+            <span>Выполнено</span><strong>{solution.metrics.completed_jobs}</strong><em>{solution.baseline.metrics.completed_jobs}</em>
+            <span>Бригад</span><strong>{solution.metrics.active_engineers}</strong><em>{solution.baseline.metrics.active_engineers}</em>
+            <span>Пробег</span><strong>{formatDistance(solution.metrics.total_distance_km)} км</strong><em>{formatDistance(solution.baseline.metrics.total_distance_km)} км</em>
+          </div>
+        </section>
+      )}
+
       {!!solution.warnings?.length && (
         <div className="route-warning"><AlertCircle size={16} /><div><strong>Есть предупреждение</strong><span>{solution.warnings[0]}</span></div></div>
       )}
@@ -144,7 +168,13 @@ export function RouteInspector({
           {!hasRoadGeometry(selectedRoute) && (
             <div className="geometry-missing"><AlertCircle size={15} />Дорожная геометрия не загрузилась. Прямая линия намеренно не рисуется.</div>
           )}
-          <RouteTimeline route={selectedRoute} brigade={selectedBrigade} requests={requests} onApplyEvent={onApplyEvent} />
+          <RouteTimeline
+            route={selectedRoute}
+            brigade={selectedBrigade}
+            requests={requests}
+            explanations={solution.explanations ?? {}}
+            onApplyEvent={onApplyEvent}
+          />
           <button
             type="button"
             className="unavailable-button"

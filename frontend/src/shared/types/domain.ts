@@ -92,6 +92,11 @@ export interface PlanSolution {
   metrics: PlanMetrics;
   seed: number;
   warnings: string[];
+  explanations?: Record<string, string>;
+  baseline?: {
+    solver_name: string;
+    metrics: PlanMetrics;
+  };
 }
 
 export interface Plan {
