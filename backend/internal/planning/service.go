@@ -132,7 +132,7 @@ func buildSolverInput(
 			ID: item.ID.String(), LocationID: locationID, ServiceMinutes: item.ServiceMinutes,
 			WindowStart: item.WindowStart, WindowEnd: item.WindowEnd,
 			RequiredSkill: item.RequiredSkill, RequiredTransport: item.RequiredTransport,
-			Priority: item.Priority,
+			Priority: item.Priority, Metadata: item.Metadata,
 		})
 	}
 	for _, item := range brigadeItems {
@@ -144,7 +144,7 @@ func buildSolverInput(
 		input.Engineers = append(input.Engineers, Engineer{
 			ID: item.ID.String(), StartLocationID: locationID,
 			ShiftStart: item.ShiftStart, ShiftEnd: item.ShiftEnd,
-			Skills: item.Skills, Transport: item.Transport,
+			Skills: item.Skills, Transport: item.Transport, WorkSchedule: item.WorkSchedule,
 		})
 	}
 	return input

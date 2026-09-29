@@ -40,6 +40,12 @@ definitions:
         type: string
       updated_at:
         type: string
+      work_schedule:
+        enum:
+        - 2/2
+        - 5/2
+        example: 2/2
+        type: string
     type: object
   brigades.CreateDTO:
     properties:
@@ -72,6 +78,12 @@ definitions:
         type: number
       transport:
         example: car
+        type: string
+      work_schedule:
+        enum:
+        - 2/2
+        - 5/2
+        example: 2/2
         type: string
     type: object
   brigades.UpdateStatusDTO:

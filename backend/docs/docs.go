@@ -530,6 +530,14 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "work_schedule": {
+                    "type": "string",
+                    "enum": [
+                        "2/2",
+                        "5/2"
+                    ],
+                    "example": "2/2"
                 }
             }
         },
@@ -576,6 +584,14 @@ const docTemplate = `{
                 "transport": {
                     "type": "string",
                     "example": "car"
+                },
+                "work_schedule": {
+                    "type": "string",
+                    "enum": [
+                        "2/2",
+                        "5/2"
+                    ],
+                    "example": "2/2"
                 }
             }
         },

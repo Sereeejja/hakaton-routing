@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from time import perf_counter
 
-from routing_opt.domain import Problem, Route, Solution
+from routing_opt.domain import Problem, Route, Solution, business_priority_rank
 from routing_opt.scheduling import evaluate_route
 
 from .base import Solver
@@ -64,7 +64,7 @@ class ImprovedGreedySolver(Solver):
         ordered_jobs = sorted(
             (job for job in problem.jobs if job.planning_eligible),
             key=lambda job: (
-                0 if job.priority.value == "urgent" else 1,
+                -business_priority_rank(job),
                 job.window_end,
                 job.window_start,
                 int(job.metadata.get("source_order", 0)),

@@ -364,7 +364,7 @@ export function PlanningMap({
           new Popup({ offset: 22, closeButton: false }).setDOMContent(
             popupContent(`Старт · ${brigade.name}`, [
               brigade.start_address,
-              `Смена ${brigade.shift_start}–${brigade.shift_end}`,
+              `График ${brigade.work_schedule ?? "2/2"} · ${brigade.shift_start}–${brigade.shift_end}`,
             ]),
           ),
         )

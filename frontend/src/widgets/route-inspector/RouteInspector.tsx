@@ -5,10 +5,8 @@ import {
   CheckCircle2,
   Clock3,
   Flag,
-  Gauge,
   MapPinned,
   Route as RouteIcon,
-  Sparkles,
   TimerReset,
 } from "lucide-react";
 import { formatClock, formatDistance, shortAddress } from "../../shared/lib/format";
@@ -112,14 +110,14 @@ export function RouteInspector({
     <aside className="inspector route-inspector">
       <header className="route-summary-header">
         <div><span>ПОСЛЕДНИЙ РАСЧЁТ</span><h2>План готов</h2></div>
-        <div className={`plan-status ${solution.status}`}><CheckCircle2 size={13} /> {solution.status}</div>
+        <div className={`plan-status ${solution.status}`}><CheckCircle2 size={13} /> Готово</div>
       </header>
 
       <div className="metric-grid">
         <div><MapPinned size={15} /><span>Выполнено</span><strong>{solution.metrics.completed_jobs}<small> заявок</small></strong></div>
         <div><RouteIcon size={15} /><span>Пробег</span><strong>{formatDistance(solution.metrics.total_distance_km)}<small> км</small></strong></div>
         <div><Clock3 size={15} /><span>В пути</span><strong>{solution.metrics.total_travel_minutes}<small> мин</small></strong></div>
-        <div><Gauge size={15} /><span>Расчёт</span><strong>{solution.metrics.runtime_seconds.toFixed(2)}<small> с</small></strong></div>
+        <div><CarFront size={15} /><span>Бригад</span><strong>{solution.metrics.active_engineers}<small> в пути</small></strong></div>
       </div>
 
       {solution.baseline && (
@@ -193,7 +191,7 @@ export function RouteInspector({
         </section>
       )}
 
-      <footer className="solver-footer"><Sparkles size={13} /> {solution.solver_name} · seed {solution.seed}</footer>
+      <footer className="solver-footer">План учитывает временные окна, навыки бригад и дорожные маршруты.</footer>
     </aside>
   );
 }

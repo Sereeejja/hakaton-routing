@@ -4,7 +4,7 @@ import math
 from time import perf_counter
 from typing import Any
 
-from routing_opt.domain import Problem, Route, Solution, Stop
+from routing_opt.domain import Problem, Route, Solution, Stop, business_priority_rank
 
 from .base import MissingDependencyError, Solver
 from .common import build_solution
@@ -130,11 +130,11 @@ class OrToolsSolver(Solver):
             # The OR-Tools 9.15 SWIG binding rejects a plain Python list in
             # SetAllowedVehiclesForIndex, while IntVar.SetValues is stable.
             routing.VehicleVar(index).SetValues([-1, *allowed])
-            penalty = (
-                objective["drop_urgent"]
-                if job.priority.value == "urgent"
-                else objective["drop_normal"]
-            )
+            penalty = {
+                2: objective["drop_urgent"],
+                1: objective["drop_connection"],
+                0: objective["drop_normal"],
+            }[business_priority_rank(job)]
             routing.AddDisjunction([index], penalty)
 
         for vehicle_id, engineer in enumerate(problem.engineers):
@@ -254,12 +254,14 @@ def _objective_weights(problem: Problem, jobs: list[Any]) -> dict[str, int]:
     lower_bound = max_distance_cost + max_time_cost + len(jobs) * assignment_change
     vehicle_fixed = lower_bound + 1
     drop_normal = vehicle_fixed * (len(problem.engineers) + 1) + lower_bound + 1
-    drop_urgent = drop_normal * (len(jobs) + 1)
+    drop_connection = drop_normal * (len(jobs) + 1)
+    drop_urgent = drop_connection * (len(jobs) + 1)
     return {
         "distance_scale": distance_scale,
         "assignment_change": assignment_change,
         "vehicle_fixed": vehicle_fixed,
         "drop_normal": drop_normal,
+        "drop_connection": drop_connection,
         "drop_urgent": drop_urgent,
     }
 

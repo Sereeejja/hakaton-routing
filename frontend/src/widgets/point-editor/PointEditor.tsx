@@ -32,8 +32,16 @@ export function PointEditor({
   onClose,
 }: PointEditorProps) {
   const [skills, setSkills] = useState(["connection", "local"]);
+  const [workSchedule, setWorkSchedule] = useState<"2/2" | "5/2">("2/2");
+  const [shiftStart, setShiftStart] = useState("10:00");
+  const [shiftEnd, setShiftEnd] = useState("22:00");
 
-  useEffect(() => setSkills(["connection", "local"]), [draft.latitude, draft.longitude]);
+  useEffect(() => {
+    setSkills(["connection", "local"]);
+    setWorkSchedule("2/2");
+    setShiftStart("10:00");
+    setShiftEnd("22:00");
+  }, [draft.latitude, draft.longitude]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -59,6 +67,7 @@ export function PointEditor({
       start_longitude: draft.longitude,
       shift_start: String(form.get("shift_start")),
       shift_end: String(form.get("shift_end")),
+      work_schedule: String(form.get("work_schedule")) as "2/2" | "5/2",
       skills,
       transport: String(form.get("transport")),
     });
@@ -131,12 +140,27 @@ export function PointEditor({
             <label className="field-label">Название точки старта
               <input name="start_address" required defaultValue={`База ${draft.latitude.toFixed(4)}, ${draft.longitude.toFixed(4)}`} />
             </label>
+            <label className="field-label">График работы
+              <select
+                name="work_schedule"
+                value={workSchedule}
+                onChange={(event) => {
+                  const schedule = event.target.value as "2/2" | "5/2";
+                  setWorkSchedule(schedule);
+                  setShiftStart(schedule === "5/2" ? "09:00" : "10:00");
+                  setShiftEnd(schedule === "5/2" ? "18:00" : "22:00");
+                }}
+              >
+                <option value="2/2">2/2 · обычно 10:00–22:00</option>
+                <option value="5/2">5/2 · обычно 09:00–18:00</option>
+              </select>
+            </label>
             <div className="field-grid">
               <label className="field-label"><Clock3 size={13} /> Смена с
-                <input name="shift_start" type="time" required defaultValue="09:00" />
+                <input name="shift_start" type="time" required value={shiftStart} onChange={(event) => setShiftStart(event.target.value)} />
               </label>
               <label className="field-label">до
-                <input name="shift_end" type="time" required defaultValue="20:00" />
+                <input name="shift_end" type="time" required value={shiftEnd} onChange={(event) => setShiftEnd(event.target.value)} />
               </label>
             </div>
             <label className="field-label">Транспорт

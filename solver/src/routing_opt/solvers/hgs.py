@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from time import perf_counter
 
-from routing_opt.domain import Priority, Problem, Route, Solution
+from routing_opt.domain import Problem, Route, Solution, business_priority_rank
 from routing_opt.scheduling import evaluate_route
 
 from .base import Solver
@@ -174,7 +174,8 @@ class HybridGeneticSolver(Solver):
                     evaluation.route.total_service_minutes + evaluation.route.total_travel_minutes
                 )
         unassigned_jobs = [problem.jobs_by_id[job_id] for job_id in individual.unassigned]
-        urgent = sum(job.priority is Priority.URGENT for job in unassigned_jobs)
+        urgent = sum(business_priority_rank(job) == 2 for job in unassigned_jobs)
+        connections = sum(business_priority_rank(job) == 1 for job in unassigned_jobs)
         changes = sum(
             previous != problem.engineers[route_index].id
             for route_index, route in enumerate(individual.routes)
@@ -187,7 +188,8 @@ class HybridGeneticSolver(Solver):
         individual.active = active
         workload_range = max(workloads) - min(workloads) if len(workloads) > 1 else 0
         individual.score = (
-            urgent * 1_000_000_000_000_000
+            urgent * 1_000_000_000_000_000_000
+            + connections * 1_000_000_000_000_000
             + len(individual.unassigned) * 1_000_000_000_000
             + active * 1_000_000_000
             + distance * 10_000

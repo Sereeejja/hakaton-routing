@@ -53,6 +53,7 @@ def solve_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
                 Transport(item["required_transport"]) if item.get("required_transport") else None
             ),
             priority=Priority(item.get("priority", "normal")),
+            metadata=dict(item.get("metadata") or {}),
         )
         for item in payload["jobs"]
     )
@@ -64,6 +65,7 @@ def solve_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
             shift_end=_minutes(item["shift_end"]),
             skills=frozenset(Skill(value) for value in item["skills"]),
             transport=Transport(item["transport"]),
+            metadata={"work_schedule": str(item.get("work_schedule", "2/2"))},
         )
         for item in payload["engineers"]
     )

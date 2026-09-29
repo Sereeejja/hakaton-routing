@@ -23,6 +23,9 @@ func NewService(repository Repository) *Service {
 func (s *Service) Create(ctx context.Context, dto CreateDTO) (Brigade, error) {
 	dto.Name = strings.TrimSpace(dto.Name)
 	dto.StartAddress = strings.TrimSpace(dto.StartAddress)
+	if dto.WorkSchedule == "" {
+		dto.WorkSchedule = "2/2"
+	}
 	dto.Skills = unique(dto.Skills)
 	if err := validateCreate(dto); err != nil {
 		return Brigade{}, err
@@ -70,6 +73,9 @@ func validateCreate(dto CreateDTO) error {
 	}
 	if !contains(dto.Transport, "car", "walk", "bicycle", "public_transit") {
 		return fmt.Errorf("%w: unknown transport", ErrValidation)
+	}
+	if !contains(dto.WorkSchedule, "2/2", "5/2") {
+		return fmt.Errorf("%w: work_schedule must be 2/2 or 5/2", ErrValidation)
 	}
 	return nil
 }

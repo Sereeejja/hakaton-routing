@@ -30,6 +30,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 const brigadeColumns = `
 	b.id, b.name, b.start_address, b.start_latitude, b.start_longitude,
 	to_char(b.shift_start, 'HH24:MI'), to_char(b.shift_end, 'HH24:MI'),
+	b.work_schedule,
 	COALESCE((SELECT jsonb_agg(bs.skill ORDER BY bs.skill) FROM brigade_skills bs WHERE bs.brigade_id = b.id), '[]'::jsonb),
 	b.transport, b.status, b.metadata, b.created_at, b.updated_at`
 
@@ -38,7 +39,7 @@ func scanBrigade(scanner interface{ Scan(...any) error }) (Brigade, error) {
 	var skillsJSON []byte
 	err := scanner.Scan(
 		&item.ID, &item.Name, &item.StartAddress, &item.StartLatitude,
-		&item.StartLongitude, &item.ShiftStart, &item.ShiftEnd, &skillsJSON,
+		&item.StartLongitude, &item.ShiftStart, &item.ShiftEnd, &item.WorkSchedule, &skillsJSON,
 		&item.Transport, &item.Status, &item.Metadata, &item.CreatedAt, &item.UpdatedAt,
 	)
 	if err == nil {
@@ -60,10 +61,10 @@ func (r *PostgresRepository) Create(ctx context.Context, dto CreateDTO) (Brigade
 	var id uuid.UUID
 	err = tx.QueryRowContext(ctx, `INSERT INTO brigades (
 		name, start_address, start_latitude, start_longitude, shift_start,
-		shift_end, transport, metadata
-	) VALUES ($1, $2, $3, $4, $5::time, $6::time, $7, $8::jsonb) RETURNING id`,
+		shift_end, work_schedule, transport, metadata
+	) VALUES ($1, $2, $3, $4, $5::time, $6::time, $7, $8, $9::jsonb) RETURNING id`,
 		dto.Name, dto.StartAddress, dto.StartLatitude, dto.StartLongitude,
-		dto.ShiftStart, dto.ShiftEnd, dto.Transport, string(metadata),
+		dto.ShiftStart, dto.ShiftEnd, dto.WorkSchedule, dto.Transport, string(metadata),
 	).Scan(&id)
 	if err != nil {
 		return Brigade{}, fmt.Errorf("insert brigade: %w", err)

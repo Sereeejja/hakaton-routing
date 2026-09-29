@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from routing_opt.domain import Priority
+from routing_opt.domain import Priority, business_priority_rank
 from routing_opt.loaders import LoaderConfig, load_engineers_csv, load_zone_dataset
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +45,21 @@ def test_source_accidents_are_urgent_but_information_is_not():
     assert all(job.priority is Priority.NORMAL for job in information)
 
 
+def test_source_business_priority_is_accident_then_connection_then_other():
+    path = ROOT / "data" / "raw" / "east" / "jobs.csv"
+    draft = load_zone_dataset(path, "east")
+    ranks_by_type: dict[str, set[int]] = {}
+    for job in draft.jobs:
+        ranks_by_type.setdefault(str(job.metadata["bk_type"]), set()).add(
+            business_priority_rank(job)
+        )
+
+    assert 2 in {business_priority_rank(job) for job in draft.jobs if job.metadata["hd_type"] == "Авария"}
+    assert ranks_by_type["Подключение"] == {1}
+    assert ranks_by_type["Дозаказ"] == {0}
+    assert ranks_by_type["Локальная заявка"] == {0}
+
+
 def test_future_engineer_csv_contract(tmp_path):
     path = tmp_path / "engineers.csv"
     path.write_text(
@@ -56,3 +71,23 @@ def test_future_engineer_csv_contract(tmp_path):
     assert engineers[0].id == "real-1"
     assert {skill.value for skill in engineers[0].skills} == {"connection", "local"}
     assert engineers[0].metadata["synthetic"] is False
+    assert engineers[0].metadata["work_schedule"] == "2/2"
+
+
+def test_additional_day_without_office_uses_explicit_master_data(tmp_path):
+    path = tmp_path / "day.csv"
+    path.write_text(
+        "Заявка;Тип заявки BK;Статус BK;Тип заявки HD;Начало;Окончание;Район;Адрес\n"
+        "100;Подключение;Отправлена;Конвергенция абонента;29.09.2026 10:00;29.09.2026 12:00;Центр;Москва\n",
+        encoding="cp1251",
+    )
+    draft = load_zone_dataset(
+        path,
+        "east",
+        LoaderConfig(office_address="Москва, офис", work_schedule="5/2"),
+    )
+    assert draft.locations[0].address == "Москва, офис"
+    assert draft.jobs[0].metadata["source_date"] == "2026-09-29"
+    assert draft.metadata["source_dates"] == ["2026-09-29"]
+    assert draft.metadata["work_schedule"] == "5/2"
+    assert all(item.metadata["work_schedule"] == "5/2" for item in draft.engineers)

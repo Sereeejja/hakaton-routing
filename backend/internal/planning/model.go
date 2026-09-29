@@ -32,14 +32,15 @@ type Location struct {
 }
 
 type Job struct {
-	ID                string  `json:"id"`
-	LocationID        string  `json:"location_id"`
-	ServiceMinutes    int     `json:"service_minutes"`
-	WindowStart       string  `json:"window_start"`
-	WindowEnd         string  `json:"window_end"`
-	RequiredSkill     string  `json:"required_skill"`
-	RequiredTransport *string `json:"required_transport"`
-	Priority          string  `json:"priority"`
+	ID                string          `json:"id"`
+	LocationID        string          `json:"location_id"`
+	ServiceMinutes    int             `json:"service_minutes"`
+	WindowStart       string          `json:"window_start"`
+	WindowEnd         string          `json:"window_end"`
+	RequiredSkill     string          `json:"required_skill"`
+	RequiredTransport *string         `json:"required_transport"`
+	Priority          string          `json:"priority"`
+	Metadata          json.RawMessage `json:"metadata,omitempty" swaggertype:"object"`
 }
 
 type Engineer struct {
@@ -49,6 +50,7 @@ type Engineer struct {
 	ShiftEnd        string   `json:"shift_end"`
 	Skills          []string `json:"skills"`
 	Transport       string   `json:"transport"`
+	WorkSchedule    string   `json:"work_schedule"`
 }
 
 type SolverOptions struct {

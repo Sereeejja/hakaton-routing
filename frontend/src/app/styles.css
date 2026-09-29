@@ -177,21 +177,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .route-focus-button:hover { color: #171a16; background: white; }
 
 .planner-toolbar {
-  position: absolute; z-index: 10; top: 18px; left: 50%; transform: translateX(-50%); width: min(710px, calc(100% - 34px)); height: 62px;
-  display: grid; grid-template-columns: auto 118px 73px 67px minmax(150px, 1fr); align-items: center; gap: 7px;
+  position: absolute; z-index: 10; top: 18px; left: 50%; transform: translateX(-50%); width: min(520px, calc(100% - 34px)); height: 62px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, 210px); align-items: center; gap: 9px;
   padding: 8px; color: #f4f6ee; border: 1px solid rgba(255,255,255,.1); border-radius: 17px; background: rgba(17,20,15,.94);
   box-shadow: 0 14px 40px rgba(14,18,13,.26); backdrop-filter: blur(18px);
 }
-.toolbar-title { display: flex; align-items: center; gap: 7px; padding: 0 6px; font-size: 9px; font-weight: 700; }
+.toolbar-title { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: 9px; font-weight: 700; }
 .toolbar-title svg { color: var(--acid); }
-.toolbar-select, .toolbar-number { position: relative; height: 44px; display: flex; flex-direction: column; justify-content: center; padding: 6px 9px; border-radius: 10px; background: rgba(255,255,255,.055); }
-.toolbar-select > span, .toolbar-number > span { color: #6f776c; font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; }
-.toolbar-select select, .toolbar-number input { height: 18px; padding: 0; color: #eef0e9; border: 0; outline: 0; background: transparent; font-size: 9px; font-weight: 650; appearance: none; }
-.toolbar-select svg { position: absolute; right: 7px; bottom: 8px; color: #697066; pointer-events: none; }
-.toolbar-number { padding-right: 21px; }
-.toolbar-number input { width: 100%; }
-.toolbar-number small { position: absolute; right: 8px; bottom: 9px; color: #687066; font-size: 7px; }
-.toolbar-number.seed { padding-right: 8px; }
+.toolbar-title > span { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.toolbar-title strong { font-size: 10px; }
+.toolbar-title small { overflow: hidden; color: #7f887c; font-size: 7px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .plan-button { height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 11px; background: var(--acid); color: #161914; font-size: 9px; font-weight: 800; cursor: pointer; transition: transform .18s, background .18s; }
 .plan-button:hover:not(:disabled) { transform: translateY(-1px); background: #e3ff70; }
 .plan-button:disabled { opacity: .45; cursor: not-allowed; }
@@ -395,7 +390,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-shell { grid-template-columns: 286px minmax(380px, 1fr) 340px; }
   .sidebar { padding-left: 16px; padding-right: 16px; }
   .sidebar-intro h1 { font-size: 24px; }
-  .planner-toolbar { grid-template-columns: auto 110px 66px 59px minmax(135px, 1fr); }
+  .planner-toolbar { grid-template-columns: minmax(0, 1fr) minmax(160px, 190px); }
   .playback-bar { grid-template-columns: 42px 27px 125px minmax(80px, 1fr) 90px; }
 }
 
@@ -403,8 +398,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-shell { grid-template-columns: 265px 1fr; }
   .inspector { position: absolute; z-index: 30; top: 0; right: 0; width: 350px; box-shadow: -16px 0 45px rgba(17,20,15,.18); }
   .map-workspace { grid-column: 2; }
-  .planner-toolbar { left: 18px; right: 18px; width: auto; transform: none; grid-template-columns: auto 105px 60px minmax(130px, 1fr); }
-  .toolbar-number.seed { display: none; }
+  .planner-toolbar { left: 18px; right: 18px; width: auto; transform: none; grid-template-columns: minmax(0, 1fr) minmax(150px, 190px); }
   .playback-bar { left: 20px; width: min(600px, calc(100% - 390px)); transform: none; grid-template-columns: 42px 28px 1fr 90px; }
   .progress-range { display: none; }
   .map-credit { display: none; }
@@ -424,9 +418,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .point-action small { display: none; }
   .map-workspace { position: absolute; inset: 0; padding-top: 136px; }
   .map-shell { top: 136px; }
-  .planner-toolbar { top: 149px; left: 10px; right: 10px; height: 54px; grid-template-columns: 90px 53px 1fr; padding: 6px; }
-  .toolbar-title, .toolbar-number.seed { display: none; }
-  .toolbar-select, .toolbar-number, .plan-button { height: 40px; }
+  .planner-toolbar { top: 149px; left: 10px; right: 10px; height: 54px; grid-template-columns: minmax(0, 1fr) minmax(145px, 180px); padding: 6px; }
+  .toolbar-title small { display: none; }
+  .plan-button { height: 40px; }
   .plan-button { font-size: 8px; }
   .map-instruction { top: 212px; max-width: calc(100% - 20px); white-space: nowrap; }
   .map-empty-state { top: 55%; }

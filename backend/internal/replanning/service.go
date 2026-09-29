@@ -100,16 +100,63 @@ func (s *Service) applyMutation(ctx context.Context, dto EventDTO) error {
 		_, err := s.brigades.UpdateStatus(ctx, payload.BrigadeID, "unavailable")
 		return err
 	case "new_urgent_request":
-		var payload requests.CreateDTO
+		var payload struct {
+			requests.CreateDTO
+			OccurredAt      string `json:"occurred_at"`
+			ReactionMinutes int    `json:"reaction_minutes"`
+		}
 		if err := json.Unmarshal(dto.Payload, &payload); err != nil {
 			return fmt.Errorf("%w: invalid request payload", ErrValidation)
 		}
-		payload.Priority = "urgent"
-		_, err := s.requests.Create(ctx, payload)
+		request, err := prepareUrgentRequest(payload.CreateDTO, payload.OccurredAt, payload.ReactionMinutes)
+		if err != nil {
+			return err
+		}
+		_, err = s.requests.Create(ctx, request)
 		return err
 	default:
 		return fmt.Errorf("%w: unknown event type", ErrValidation)
 	}
+}
+
+func prepareUrgentRequest(dto requests.CreateDTO, occurredAt string, reactionMinutes int) (requests.CreateDTO, error) {
+	dto.Priority = "urgent"
+	if dto.RequiredSkill == "" {
+		dto.RequiredSkill = "emergency"
+	}
+	if occurredAt == "" {
+		return dto, nil
+	}
+	start, err := time.Parse("15:04", occurredAt)
+	if err != nil {
+		return requests.CreateDTO{}, fmt.Errorf("%w: occurred_at must be HH:MM", ErrValidation)
+	}
+	if reactionMinutes == 0 {
+		reactionMinutes = 120
+	}
+	if reactionMinutes < 60 || reactionMinutes > 120 {
+		return requests.CreateDTO{}, fmt.Errorf("%w: reaction_minutes must be between 60 and 120", ErrValidation)
+	}
+	end := start.Add(time.Duration(reactionMinutes) * time.Minute)
+	lastMinute := time.Date(start.Year(), start.Month(), start.Day(), 23, 59, 0, 0, start.Location())
+	if end.After(lastMinute) || end.Day() != start.Day() {
+		end = lastMinute
+	}
+	dto.WindowStart = start.Format("15:04")
+	dto.WindowEnd = end.Format("15:04")
+	metadata := map[string]any{
+		"occurred_at":          dto.WindowStart,
+		"reaction_sla_minutes": reactionMinutes,
+		"source":               "dynamic_event",
+	}
+	if len(dto.Metadata) > 0 {
+		_ = json.Unmarshal(dto.Metadata, &metadata)
+		metadata["occurred_at"] = dto.WindowStart
+		metadata["reaction_sla_minutes"] = reactionMinutes
+		metadata["source"] = "dynamic_event"
+	}
+	dto.Metadata, _ = json.Marshal(metadata)
+	return dto, nil
 }
 
 func eventTypeAllowed(value string) bool {

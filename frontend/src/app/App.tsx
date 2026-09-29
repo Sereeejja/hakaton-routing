@@ -13,7 +13,6 @@ import type {
   PlacementMode,
   PointDraft,
   PointKind,
-  RunPlanInput,
   ServiceRequest,
 } from "../shared/types/domain";
 import { PlanningMap } from "../widgets/map/PlanningMap";
@@ -46,7 +45,8 @@ const demoBrigades: CreateBrigadeInput[] = [
     start_latitude: 55.7752,
     start_longitude: 37.6521,
     shift_start: "09:00",
-    shift_end: "20:00",
+    shift_end: "18:00",
+    work_schedule: "5/2",
     skills: ["connection", "local"],
     transport: "car",
   },
@@ -55,8 +55,9 @@ const demoBrigades: CreateBrigadeInput[] = [
     start_address: "Нижегородская улица, 32",
     start_latitude: 55.7315,
     start_longitude: 37.7066,
-    shift_start: "09:00",
+    shift_start: "10:00",
     shift_end: "22:00",
+    work_schedule: "2/2",
     skills: ["local", "emergency"],
     transport: "car",
   },
@@ -80,7 +81,6 @@ export default function App() {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [draft, setDraft] = useState<PointDraft | null>(null);
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null);
-  const [settings, setSettings] = useState<RunPlanInput>({ solver_name: "ortools", time_limit_seconds: 10, seed: 42 });
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -196,7 +196,7 @@ export default function App() {
   const runPlan = async () => {
     setIsPlanning(true);
     try {
-      const plan = await api.plans.create(settings);
+      const plan = await api.plans.create({});
       setActivePlan(plan);
       setSelectedRouteId(preferredRouteId(plan.solution?.routes.filter((route) => route.stops.length > 0) ?? []));
       setDraft(null);
@@ -308,7 +308,7 @@ export default function App() {
           onMapClick={handleMapClick}
           onSelectRoute={setSelectedRouteId}
         />
-        <PlannerToolbar settings={settings} isPlanning={isPlanning} canPlan={canPlan} onSettings={setSettings} onPlan={() => void runPlan()} />
+        <PlannerToolbar isPlanning={isPlanning} canPlan={canPlan} onPlan={() => void runPlan()} />
         <div className={`map-instruction ${placementMode ? "active" : ""}`}>
           <MousePointer2 size={16} />
           <span>{placementMode === "brigade" ? "Кликните на карту — здесь будет старт бригады" : placementMode === "request" ? "Кликните на карту — здесь будет новая заявка" : "Клик по карте добавляет заявку"}</span>

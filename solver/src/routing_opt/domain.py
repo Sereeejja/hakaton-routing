@@ -27,6 +27,21 @@ class Priority(StrEnum):
     URGENT = "urgent"
 
 
+def business_priority_rank(job: Job) -> int:
+    """Return the business priority agreed with the case owner.
+
+    Accidents are always first, source BK connections are second, and repair /
+    additional-equipment visits share the regular tier.  The source type lives
+    in metadata so the public API can keep its simple normal/urgent contract.
+    """
+
+    if job.priority is Priority.URGENT or job.metadata.get("hd_type") == "Авария":
+        return 2
+    if job.metadata.get("bk_type") == "Подключение":
+        return 1
+    return 0
+
+
 class SolutionStatus(StrEnum):
     FEASIBLE = "feasible"
     PARTIAL = "partial"

@@ -34,6 +34,7 @@ export interface Brigade {
   start_longitude: number;
   shift_start: string;
   shift_end: string;
+  work_schedule: "2/2" | "5/2" | string;
   skills: string[];
   transport: string;
   status: "available" | "unavailable" | string;
@@ -131,12 +132,13 @@ export interface CreateBrigadeInput {
   start_longitude: number;
   shift_start: string;
   shift_end: string;
+  work_schedule: "2/2" | "5/2";
   skills: string[];
   transport: string;
 }
 
 export interface RunPlanInput {
-  solver_name: string;
-  time_limit_seconds: number;
-  seed: number;
+  solver_name?: string;
+  time_limit_seconds?: number;
+  seed?: number;
 }
